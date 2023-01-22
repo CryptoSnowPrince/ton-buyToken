@@ -1,0 +1,43 @@
+{
+  "name": "ton-buy-token",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ton-buy-token",
+  "license": "GPL-3.0",
+  "main": "src/index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "devDependencies": {
+    "@types/ioredis": "^4.26.4",
+    "@types/node": "^18.11.9",
+    "@types/sharp": "^0.30.0",
+    "@types/tmp": "^0.2.1",
+    "nodemon": "^2.0.7",
+    "prettier": "^2.1.2"
+  },
+  "dependencies": {
+    "@orbs-network/ton-access": "^2.2.2",
+    "@ton-community/func-js": "^0.4.0",
+    "dotenv": "^16.0.3",
+    "fs": "^0.0.1-security",
+    "ton": "^13.3.0",
+    "ton-core": "^0.44.0",
+    "ton-crypto": "^3.2.0",
+    "ts-node": "^10.7.0",
+    "ts-try": "^0.2.0",
+    "typescript": "4.5",
+    "web3": "^1.7.1"
+  },
+  "scripts": {
+    "build": "tsc",
+    "compile": "npx func-js ./contracts/counter.fc --boc ./contracts/counter.cell",
+    "deploy": "ts-node scripts/deploy.ts",
+    "getter": "ts-node scripts/getter.ts",
+    "sendmsg": "ts-node scripts/sendMsg.ts"
+  }
+}
