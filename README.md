@@ -1,8 +1,7 @@
 # Read Me
 # Build contract
 ```sh
-cd contracts
-npx func-js counter.fc --boc counter.cell
+yarn compile
 ```
 
 # deploy smart contracts
