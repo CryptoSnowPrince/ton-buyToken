@@ -23,13 +23,13 @@ function initData(addr:Address) {
 // const newContractAddress = contractAddress(0, {code: initCodeCell, data: initDataCell});
 
 const netmode = process.env.MODE
-const testnet_mnemonic: string = process.env.MNEMONIC || ""
+const mnemonic: string = process.env.MNEMONIC || ""
 
 deploy();
 
 async function deploy() {
   //return;
-  const key = await mnemonicToWalletKey(testnet_mnemonic.toString().split(" "));
+  const key = await mnemonicToWalletKey(mnemonic.toString().split(" "));
   const wallet = WalletContractV3R2.create({
     publicKey: key.publicKey,
     workchain: 0,

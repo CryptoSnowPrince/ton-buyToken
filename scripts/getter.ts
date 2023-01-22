@@ -6,6 +6,9 @@ import { mnemonicToWalletKey } from "ton-crypto";
 import { WalletContractV3R2, internal } from "ton";
 import { TonClient, SendMode, Address } from "ton";
 import { getHttpEndpoint } from "@orbs-network/ton-access"
+import dotenv from "dotenv"
+
+dotenv.config()
 
 // function initData() {
 //   const initialCounterValue = 17;
@@ -17,14 +20,14 @@ import { getHttpEndpoint } from "@orbs-network/ton-access"
 
 //const newContractAddress = Address.parse("EQDRTAb0tjBt-SPhfirpm1CxnnuYzieIuQqWP-4KzJnPcCyL");
 
-let netmode = "main";
+const netmode = process.env.MODE
 
 callGetter();
 
 async function callGetter() {
   let newContractAddress = Address.parse(fs.readFileSync("contract_address.txt").toString());
   const endpoint = await getHttpEndpoint({
-    network: (netmode === "test" ? "testnet" : "mainnet") // or "testnet", according to your choice
+    network: (netmode === "testnet" ? "testnet" : "mainnet") // or "testnet", according to your choice
   });
   console.log("contract address ====> " + newContractAddress);
 
