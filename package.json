@@ -35,8 +35,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "compile": "npx func-js ./contracts/counter.fc --boc ./contracts/counter.cell",
+    "tcompile": "npx func-js ./contracts/main.fc --boc ./contracts/main.cell",
+    "tdeploy": "ts-node scripts/deployTestVal.ts",
+    "tgetter": "ts-node scripts/getterTestVal.ts",
+    "tsendmsg": "ts-node scripts/sendMsgTestVal.ts",
     "deploy": "ts-node scripts/deploy.ts",
+    "compile": "npx func-js ./contracts/counter.fc --boc ./contracts/counter.cell",
     "getter": "ts-node scripts/getter.ts",
     "sendmsg": "ts-node scripts/sendMsg.ts"
   }

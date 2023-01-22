@@ -1,0 +1,43 @@
+#include "stdlib.fc";
+
+(int, int, slice, cell) load_data() inline {                 ;; read function declaration - returns int as result
+  var ds = get_data().begin_parse();       ;; load the storage cell and start parsing as a slice
+  return (ds~load_uint(64), ds~load_uint(64), ds~load_msg_addr(), ds~load_dict());               ;; read a 64 bit unsigned int from the slice and return it
+}
+
+() save_data(int testVal, int pending_platform_fee, slice admin_address, cell bots) impure inline {  ;; write function declaration - takes an int as arg
+  set_data(begin_cell()                    ;; store the storage cell and create it with a builder 
+    ;; .store_uint(testVal, 64)               ;; write a 64 bit unsigned int to the builder
+    .store_uint(pending_platform_fee, 64)               ;; write a 64 bit unsigned int to the builder
+    .store_slice(admin_address)
+    .store_dict(bots)
+    .end_cell());                          ;; convert the builder to a cell
+}
+
+(int) get_testVal() method_id {        ;; getter declaration - returns int as result
+  var (testVal, pending_platform_fee, admin_address, bots) = load_data();
+  return (testVal);
+}
+
+() set_testVal () impure {
+  var (testVal, pending_platform_fee, admin_address, bots) = load_data();
+  save_data(testVal + 1, pending_platform_fee, admin_address, bots);
+}
+
+() recv_internal(int msg_value, cell in_msg, slice in_msg_body) impure {  ;; well known function signature
+  var cs = in_msg.begin_parse();
+  var flags = cs~load_uint(4);  ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+  ;; if (flags & 1) {
+  ;;   ;; ignore all bounced messages
+  ;;   return ();
+  ;; }
+  slice sender_address = cs~load_msg_addr();
+
+  ;; sz_key_dict = 32;
+
+  int op = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
+  if (op == 6) {                                                          ;; handle op #1 = set admin
+    set_testVal();
+    return ();
+  }
+}

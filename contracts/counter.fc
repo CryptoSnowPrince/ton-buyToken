@@ -132,7 +132,6 @@
 ;; }
 
 () recv_internal(int msg_value, cell in_msg, slice in_msg_body) impure {  ;; well known function signature
-;; () recv_internal(int msg_value, cell in_msg, slice in_msg_body) impure {  ;; well known function signature
   var cs = in_msg.begin_parse();
   var flags = cs~load_uint(4);  ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
   ;; if (flags & 1) {
