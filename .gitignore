@@ -4,9 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
-contract_address.txt
-alicewallet.txt
-bobwallet.txt
+*.txt
 # testing
 /coverage
 
