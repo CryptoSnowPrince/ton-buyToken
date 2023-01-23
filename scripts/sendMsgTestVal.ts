@@ -14,7 +14,7 @@ dotenv.config()
 //const newContractAddress = Address.parse("EQDRTAb0tjBt-SPhfirpm1CxnnuYzieIuQqWP-4KzJnPcCyL");
 //const newadminwallet = Address.parse("EQBQ3a_W0_LDgU91FxHYpy8aTIyOzT9NQkLUfpyiymribBHR");
 // const newadminwallet = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
-// const newbot = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
+const calledContract = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
 
 const netmode = process.env.MODE
 const mnemonic: string = process.env.MNEMONIC || ""
@@ -29,23 +29,23 @@ async function sendMessage() {
   const endpoint = await getHttpEndpoint({
     network: netmode == 'testnet' ? "testnet" : "mainnet" // or "testnet", according to your choice
   });
-  let newContractAddress = Address.parse(fs.readFileSync("main.txt").toString());
-
   const client = new TonClient({ endpoint });
-  console.log("contract start ====> " + newContractAddress);
   const key = await mnemonicToWalletKey(mnemonic.split(" "));
   const wallet = WalletContractV3R2.create({
     publicKey: key.publicKey,
     workchain: 0,
   });
 
-  let messageBody = beginCell().storeUint(1, 32).storeUint(25, 32).endCell(); // op with value 1 (increment)
+  let newContractAddress = Address.parse(fs.readFileSync("main.txt").toString());
+  console.log("contract start ====> " + newContractAddress);
 
-  const contract = client.open(wallet);
-  const seqno = await contract.getSeqno(); // get the next seqno of our wallet
+  let messageBody = beginCell().storeUint(1, 32).storeUint(50, 32).endCell(); // op with value 1 (increment)
+
+  let contract = client.open(wallet);
+  let seqno = await contract.getSeqno(); // get the next seqno of our wallet
   console.log("wallet addess  ====> " + wallet.address + "    no: " + seqno + " , SecretKey: " + key.secretKey.toString());
   
-  const transfer = contract.createTransfer({
+  let transfer = contract.createTransfer({
     seqno,
     messages: [
       internal({
@@ -59,7 +59,34 @@ async function sendMessage() {
     sendMode: SendMode.PAY_GAS_SEPARATLY+ SendMode.IGNORE_ERRORS,
   });
 
-  const send = await client.sendExternalMessage(wallet, transfer);
+  let send = await client.sendExternalMessage(wallet, transfer);
   console.log(send);
+
   //await client.sendExternalMessage(wallet, transfer);
+  // ====================================================
+  let called = Address.parse(fs.readFileSync("called.txt").toString());
+  console.log("called contract ====> " + called);
+
+  messageBody = beginCell().storeUint(2, 32).storeAddress(called).storeUint(60, 32).endCell(); // op with value 1 (increment)
+
+  contract = client.open(wallet);
+  seqno = await contract.getSeqno(); // get the next seqno of our wallet
+  console.log("wallet addess  ====> " + wallet.address + "    no: " + seqno + " , SecretKey: " + key.secretKey.toString());
+  
+  transfer = contract.createTransfer({
+    seqno,
+    messages: [
+      internal({
+        to: newContractAddress.toString(),
+        value: '0.1',
+        bounce: false,
+        body: messageBody
+      }),
+    ],
+    secretKey: key.secretKey,
+    sendMode: SendMode.PAY_GAS_SEPARATLY+ SendMode.IGNORE_ERRORS,
+  });
+
+  send = await client.sendExternalMessage(wallet, transfer);
+  console.log(send);
 }

@@ -35,7 +35,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "tcompile": "npx func-js ./contracts/main.fc --boc ./contracts/main.cell",
+    "tcompile": "npx func-js ./contracts/main.fc --boc ./contracts/main.cell; npx func-js ./contracts/called.fc --boc ./contracts/called.cell",
     "tdeploy": "ts-node scripts/deployTestVal.ts",
     "tgetter": "ts-node scripts/getterTestVal.ts",
     "tsendmsg": "ts-node scripts/sendMsgTestVal.ts",

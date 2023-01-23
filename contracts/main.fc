@@ -25,9 +25,31 @@
 () recv_internal(int msg_value, cell in_msg, slice in_msg_body) impure {  ;; well known function signature
   ;; var cs = in_msg.begin_parse();
   int op = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
-  int newVal = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
   if (op == 1) {                                                          ;; handle op #1 = set admin
+    int newVal = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
     set_testVal(newVal);
     return ();
+  }
+
+  if (op == 2) {                                                          ;; handle op #1 = set admin
+    slice address = in_msg_body~load_msg_addr();
+    int newVal = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
+
+    var msg_body = begin_cell()
+    .store_uint(OP_TRANSFER, 32)
+    .store_uint(newVal, 32) ;; https://github.com/ton-blockchain/token-contract/blob/2c13d3ef61ca4288293ad65bf0cfeaed83879b93/ft/jetton-wallet.fc#L60
+    .end_cell();
+
+    var msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(address)
+    .store_coins(100000) ;; gas
+    .store_uint(4, 1 + 4 + 4 + 64 + 32)
+    .store_uint(0, 1) ;; state-init null
+    .store_uint(1, 1); ;; message body as REF
+
+    msg = msg.store_ref(msg_body);
+
+    send_raw_message(msg.end_cell(), 2 + 1); ;; revert on errors
   }
 }

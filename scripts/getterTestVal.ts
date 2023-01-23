@@ -25,7 +25,7 @@ const netmode = process.env.MODE
 callGetter();
 
 async function callGetter() {
-  let contractAddress = Address.parse(fs.readFileSync("main.txt").toString());
+  let contractAddress = Address.parse(fs.readFileSync("called.txt").toString());
   const endpoint = await getHttpEndpoint({
     network: (netmode === "testnet" ? "testnet" : "mainnet") // or "testnet", according to your choice
   });

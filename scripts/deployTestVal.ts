@@ -42,21 +42,55 @@ async function deploy() {
   console.log("wallet start ====> " + wallet.address);
 
   let initDataCell = initData(wallet.address); // the function we've implemented just now
-  const initCodeCell = Cell.fromBoc(fs.readFileSync("./contracts/main.cell"))[0]; // compilation output from step 6
+  let initCodeCell = Cell.fromBoc(fs.readFileSync("./contracts/main.cell"))[0]; // compilation output from step 6
 
   let newContractAddress = contractAddress(0, {code: initCodeCell, data: initDataCell});
   console.log("contract start ====> " + (netmode == 'testnet' ? "testnet: " : "mainnet: ") + newContractAddress);
   fs.writeFileSync("main.txt", newContractAddress.toString());
 
-  const contract = client.open(wallet);
+  let contract = client.open(wallet);
 
   console.log("contract opened ====> " + contract.address);
 
-  const seqno = await contract.getSeqno(); // get the next seqno of our wallet
+  let seqno = await contract.getSeqno(); // get the next seqno of our wallet
   
   console.log("getSeqno ====> " + seqno);
 
-  const transfer = contract.createTransfer({
+  let transfer = contract.createTransfer({
+    seqno,
+    messages: [
+      internal({
+        to: newContractAddress.toString(),
+        value: '0.01',
+        init: { data: initDataCell, code: initCodeCell },
+        bounce: false,
+      }),
+    ],
+    secretKey: key.secretKey,
+    sendMode: SendMode.PAY_GAS_SEPARATLY + SendMode.IGNORE_ERRORS,
+  });
+
+  await client.sendExternalMessage(wallet, transfer);
+
+  console.log("contract end ====> " );
+
+  // =================================
+
+  initCodeCell = Cell.fromBoc(fs.readFileSync("./contracts/called.cell"))[0]; // compilation output from step 6
+
+  newContractAddress = contractAddress(0, {code: initCodeCell, data: initDataCell});
+  console.log("contract start ====> " + (netmode == 'testnet' ? "testnet: " : "mainnet: ") + newContractAddress);
+  fs.writeFileSync("called.txt", newContractAddress.toString());
+
+  contract = client.open(wallet);
+
+  console.log("contract opened ====> " + contract.address);
+
+  seqno = await contract.getSeqno(); // get the next seqno of our wallet
+  
+  console.log("getSeqno ====> " + seqno);
+
+  transfer = contract.createTransfer({
     seqno,
     messages: [
       internal({
