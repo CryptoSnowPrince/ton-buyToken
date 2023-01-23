@@ -36,11 +36,14 @@
   "scripts": {
     "build": "tsc",
     "tcompile": "npx func-js ./contracts/main.fc --boc ./contracts/main.cell; npx func-js ./contracts/called.fc --boc ./contracts/called.cell",
-    "tdeploy": "ts-node scripts/deployTestVal.ts",
-    "tgetter": "ts-node scripts/getterTestVal.ts",
-    "tsendmsg": "ts-node scripts/sendMsgTestVal.ts",
-    "deploy": "ts-node scripts/deploy.ts",
+    "tdeploy2": "ts-node scripts/deployCalled.ts",
+    "tgetter2": "ts-node scripts/getterCalled.ts",
+    "tsendmsg2": "ts-node scripts/sendCalled.ts",
+    "tdeploy1": "ts-node scripts/deployMain.ts",
+    "tgetter1": "ts-node scripts/getterMain.ts",
+    "tsendmsg1": "ts-node scripts/sendMain.ts",
     "compile": "npx func-js ./contracts/counter.fc --boc ./contracts/counter.cell",
+    "deploy": "ts-node scripts/deploy.ts",
     "getter": "ts-node scripts/getter.ts",
     "sendmsg": "ts-node scripts/sendMsg.ts"
   }

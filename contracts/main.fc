@@ -2,13 +2,13 @@
 
 (int) load_data() inline {                 ;; read function declaration - returns int as result
   var ds = get_data().begin_parse();       ;; load the storage cell and start parsing as a slice
-  return (ds~load_uint(64));               ;; read a 64 bit unsigned int from the slice and return it
+  return (ds~load_uint(32));               ;; read a 64 bit unsigned int from the slice and return it
 }
 
 () save_data(int testVal) impure inline {  ;; write function declaration - takes an int as arg
   set_data(
     begin_cell()                    ;; store the storage cell and create it with a builder 
-    .store_uint(testVal, 64)               ;; write a 64 bit unsigned int to the builder
+    .store_uint(testVal, 32)               ;; write a 64 bit unsigned int to the builder
     .end_cell()
   );                          ;; convert the builder to a cell
 }
@@ -36,7 +36,7 @@
     int newVal = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
 
     var msg_body = begin_cell()
-    .store_uint(OP_TRANSFER, 32)
+    .store_uint(1, 32)
     .store_uint(newVal, 32) ;; https://github.com/ton-blockchain/token-contract/blob/2c13d3ef61ca4288293ad65bf0cfeaed83879b93/ft/jetton-wallet.fc#L60
     .end_cell();
 
