@@ -11,7 +11,7 @@ import dotenv from "dotenv"
 dotenv.config()
 
 function initData(init_value: number) {
-  return beginCell().storeUint(init_value, 32).endCell();
+  return beginCell().storeUint(init_value, 64).endCell();
 }
 
 const netmode = process.env.MODE

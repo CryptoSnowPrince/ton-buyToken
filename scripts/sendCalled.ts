@@ -31,7 +31,7 @@ async function sendMessage() {
   let newContractAddress = Address.parse(fs.readFileSync("called.txt").toString());
   console.log("contract start ====> " + newContractAddress);
 
-  let messageBody = beginCell().storeUint(1, 32).storeUint(50, 32).endCell(); // op with value 1 (increment)
+  let messageBody = beginCell().storeUint(1, 64).storeUint(50, 64).endCell(); // op with value 1 (increment)
 
   let contract = client.open(wallet);
   let seqno = await contract.getSeqno(); // get the next seqno of our wallet
