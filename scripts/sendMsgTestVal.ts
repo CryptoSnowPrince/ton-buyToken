@@ -13,8 +13,8 @@ dotenv.config()
 
 //const newContractAddress = Address.parse("EQDRTAb0tjBt-SPhfirpm1CxnnuYzieIuQqWP-4KzJnPcCyL");
 //const newadminwallet = Address.parse("EQBQ3a_W0_LDgU91FxHYpy8aTIyOzT9NQkLUfpyiymribBHR");
-const newadminwallet = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
-const newbot = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
+// const newadminwallet = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
+// const newbot = Address.parse("EQATxUMDtyQacmE5lKmIYsF8bvtsaSuJ5PlwwR2eVclyJx5V");
 
 const netmode = process.env.MODE
 const mnemonic: string = process.env.MNEMONIC || ""
@@ -23,25 +23,13 @@ main();
 
 async function main() {
   await sendMessage();
-  //callGetter();
-}
-
-async function callGetter() {
-  const endpoint = await getHttpEndpoint({
-    network: netmode == 'testnet' ? "testnet" : "mainnet" // or "testnet", according to your choice
-  });
-  let newContractAddress = Address.parse(fs.readFileSync("main.txt").toString());
-
-  const client = new TonClient({ endpoint });
-  const call = await client.callGetMethod(newContractAddress, "counter"); // newContractAddress from deploy
-  console.log(`Counter value is ${call.stack.readBigNumber().toString()}`);
 }
 
 async function sendMessage() {
   const endpoint = await getHttpEndpoint({
     network: netmode == 'testnet' ? "testnet" : "mainnet" // or "testnet", according to your choice
   });
-  let newContractAddress = Address.parse(fs.readFileSync("contract_address.txt").toString());
+  let newContractAddress = Address.parse(fs.readFileSync("main.txt").toString());
 
   const client = new TonClient({ endpoint });
   console.log("contract start ====> " + newContractAddress);
@@ -51,10 +39,7 @@ async function sendMessage() {
     workchain: 0,
   });
 
-  let messageBody = beginCell().storeUint(1, 32).storeAddress(newadminwallet).endCell(); // op with value 1 (increment)
-  
-  //let messageBody = beginCell().storeUint(2, 32).storeUint(1, 32).storeAddress(newbot).endCell(); // op with value 1 (increment)
-  //let messageBody = beginCell().storeUint(3, 32).endCell(); // op with value 1 (increment)
+  let messageBody = beginCell().storeUint(1, 32).storeUint(25, 32).endCell(); // op with value 1 (increment)
 
   const contract = client.open(wallet);
   const seqno = await contract.getSeqno(); // get the next seqno of our wallet
@@ -65,7 +50,7 @@ async function sendMessage() {
     messages: [
       internal({
         to: newContractAddress.toString(),
-        value: '0.01',
+        value: '0.03',
         bounce: false,
         body: messageBody
       }),
@@ -75,6 +60,6 @@ async function sendMessage() {
   });
 
   const send = await client.sendExternalMessage(wallet, transfer);
-  //console.log(send.log);
+  console.log(send);
   //await client.sendExternalMessage(wallet, transfer);
 }

@@ -51,10 +51,10 @@ async function sendMessage() {
     workchain: 0,
   });
 
-  let messageBody = beginCell().storeUint(1, 32).storeAddress(newadminwallet).endCell(); // op with value 1 (increment)
+  // let messageBody = beginCell().storeUint(1, 32).storeAddress(newadminwallet).endCell(); // op with value 1 (increment)
   
-  //let messageBody = beginCell().storeUint(2, 32).storeUint(1, 32).storeAddress(newbot).endCell(); // op with value 1 (increment)
-  //let messageBody = beginCell().storeUint(3, 32).endCell(); // op with value 1 (increment)
+  let messageBody = beginCell().storeUint(2, 32).storeUint(1, 32).storeAddress(newbot).endCell(); // op with value 1 (increment)
+  // let messageBody = beginCell().storeUint(3, 32).endCell(); // op with value 1 (increment)
 
   const contract = client.open(wallet);
   const seqno = await contract.getSeqno(); // get the next seqno of our wallet

@@ -1,122 +1,98 @@
 #include "stdlib.fc";
 
-;; global int sz_key_dict ;
-;; const OP_TRANSFER = 0xf8a7ea5;
+global int sz_key_dict ;
+const OP_TRANSFER = 0xf8a7ea5;
 
-;; (int, slice, cell) load_data() inline {                 ;; read function declaration - returns int as result
-;;   var ds = get_data().begin_parse();       ;; load the storage cell and start parsing as a slice
-;;   return (ds~load_uint(64), ds~load_msg_addr(), ds~load_dict());               ;; read a 64 bit unsigned int from the slice and return it
-;; }
-
-;; () save_data(int pending_platform_fee, slice admin_address, cell bots) impure inline {  ;; write function declaration - takes an int as arg
-;;   set_data(begin_cell()                    ;; store the storage cell and create it with a builder 
-;;     .store_uint(pending_platform_fee, 64)               ;; write a 64 bit unsigned int to the builder
-;;     .store_slice(admin_address)
-;;     .store_dict(bots)
-;;     .end_cell());                          ;; convert the builder to a cell
-;; }
-
-(int, int, slice, cell) load_data() inline {                 ;; read function declaration - returns int as result
+(int, slice, cell) load_data() inline {                 ;; read function declaration - returns int as result
   var ds = get_data().begin_parse();       ;; load the storage cell and start parsing as a slice
-  return (ds~load_uint(64), ds~load_uint(64), ds~load_msg_addr(), ds~load_dict());               ;; read a 64 bit unsigned int from the slice and return it
+  return (ds~load_uint(64), ds~load_msg_addr(), ds~load_dict());               ;; read a 64 bit unsigned int from the slice and return it
 }
 
-() save_data(int testVal, int pending_platform_fee, slice admin_address, cell bots) impure inline {  ;; write function declaration - takes an int as arg
+() save_data(int pending_platform_fee, slice admin_address, cell bots) impure inline {  ;; write function declaration - takes an int as arg
   set_data(begin_cell()                    ;; store the storage cell and create it with a builder 
-    ;; .store_uint(testVal, 64)               ;; write a 64 bit unsigned int to the builder
     .store_uint(pending_platform_fee, 64)               ;; write a 64 bit unsigned int to the builder
     .store_slice(admin_address)
     .store_dict(bots)
     .end_cell());                          ;; convert the builder to a cell
 }
 
-(int) get_testVal() method_id {        ;; getter declaration - returns int as result
-  var (testVal, pending_platform_fee, admin_address, bots) = load_data();
-  return (testVal);
+() set_admin (slice sender_address, slice new_admin) impure {
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  throw_unless(728, equal_slices(sender_address, admin_address));
+  if (bots.dict_empty?()) {
+    bots = new_dict();
+  }
+  save_data(pending_platform_fee + 1, new_admin, bots);
 }
 
-() set_testVal () impure {
-  var (testVal, pending_platform_fee, admin_address, bots) = load_data();
-  save_data(testVal + 1, pending_platform_fee, admin_address, bots);
+(int, int, int) get_index(cell dict, slice addr) inline {
+  int key = -1;
+  do {
+      (key, slice value, int flag) = dict.udict_get_next?(sz_key_dict, key);
+
+      if (flag) {
+        slice addr_bot = value~load_msg_addr();
+        int b_role = value~load_uint(1);
+        if (equal_slices(addr_bot, addr))
+        {
+          flag = 0;
+          return (1, key, b_role);
+        }
+      }
+  } until ( ~ flag);
+  return (0, key, 0);
 }
 
-;; () set_admin (slice sender_address, slice new_admin) impure {
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   throw_unless(728, equal_slices(sender_address, admin_address));
-;;   if (bots.dict_empty?()) {
-;;     bots = new_dict();
-;;   }
-;;   save_data(pending_platform_fee + 1, new_admin, bots);
-;; }
+() set_bot(slice sender_address, slice new_bot, int bRole) impure {
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  throw_unless(712, equal_slices(sender_address, admin_address));
+      ;; throw(2001);
 
-;; (int, int, int) get_index(cell dict, slice addr) inline {
-;;   int key = -1;
-;;   do {
-;;       (key, slice value, int flag) = dict.udict_get_next?(sz_key_dict, key);
+  if (bots.dict_empty?()) {
+    bots = new_dict();
+  }
 
-;;       if (flag) {
-;;         slice addr_bot = value~load_msg_addr();
-;;         int b_role = value~load_uint(1);
-;;         if (equal_slices(addr_bot, addr))
-;;         {
-;;           flag = 0;
-;;           return (1, key, b_role);
-;;         }
-;;       }
-;;   } until ( ~ flag);
-;;   return (0, key, 0);
-;; }
+  slice new_role = begin_cell().store_slice(new_bot).store_uint(bRole, 1).end_cell().begin_parse();
 
-;; () set_bot(slice sender_address, slice new_bot, int bRole) impure {
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   throw_unless(712, equal_slices(sender_address, admin_address));
-;;       ;; throw(2001);
-
-;;   if (bots.dict_empty?()) {
-;;     bots = new_dict();
-;;   }
-
-;;   slice new_role = begin_cell().store_slice(new_bot).store_uint(bRole, 1).end_cell().begin_parse();
-
-;;   (int bfound, int key, _) = get_index(bots, new_bot);
-;;   if (bfound > 0){
-;;     bots~udict_set(sz_key_dict, key, new_role);
-;;   } else {
-;;     bots~udict_add?(sz_key_dict, key, new_role);
-;;     ;; bots.udict_add?(256, key, in_msg_body);
-;;   }
+  (int bfound, int key, _) = get_index(bots, new_bot);
+  if (bfound > 0){
+    bots~udict_set(sz_key_dict, key, new_role);
+  } else {
+    bots~udict_add?(sz_key_dict, key, new_role);
+    ;; bots.udict_add?(256, key, in_msg_body);
+  }
   
-;;   ;; if (b_exist > 0)
-;;   ;;   bots~udict_set(256, new_bot, bRole);
+  ;; if (b_exist > 0)
+  ;;   bots~udict_set(256, new_bot, bRole);
 
-;;   ;;bots~udict_set(256, new_bot, bRole);
+  ;;bots~udict_set(256, new_bot, bRole);
 
-;;   save_data(pending_platform_fee, admin_address, bots);
-;; }
+  save_data(pending_platform_fee, admin_address, bots);
+}
 
-;; () buy_token(slice sender_address) impure {
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   if (bots.dict_empty?()) {
-;;     throw(1013);
-;;   }
-;;   (int bfound, int key, int b_role) = get_index(bots, sender_address);
-;;   if (bfound > 0)  {
-;;     if (b_role > 0) {
-;;       throw(1031);
-;;     } else {
-;;       throw(1052);
-;;     }
-;;   } else {
-;;     throw(1021);
-;;   }
-;; }
+() buy_token(slice sender_address) impure {
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  if (bots.dict_empty?()) {
+    throw(1013);
+  }
+  (int bfound, int key, int b_role) = get_index(bots, sender_address);
+  if (bfound > 0)  {
+    if (b_role > 0) {
+      throw(1031);
+    } else {
+      throw(1052);
+    }
+  } else {
+    throw(1021);
+  }
+}
 
-;; () withdrawfee(sender_address) impure {
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   throw_unless(712, equal_slices(sender_address, admin_address));
+() withdrawfee(sender_address) impure {
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  throw_unless(712, equal_slices(sender_address, admin_address));
 
   
-;; }
+}
 
 ;; slice parse_sender_address (cell in_msg_full) inline {
 ;;   var cs = in_msg_full.begin_parse();
@@ -140,82 +116,78 @@
   ;; }
   slice sender_address = cs~load_msg_addr();
 
-  ;; sz_key_dict = 32;
+  sz_key_dict = 32;
 
   int op = in_msg_body~load_uint(32);                                     ;; parse the operation type encoded in the beginning of msg body
-  if (op == 6) {                                                          ;; handle op #1 = set admin
-    set_testVal();
+  ;;var (counter) = load_data();                                            ;; call our read utility function to load values from storage
+  if (op == 1) {                                                          ;; handle op #1 = set admin
+    slice new_admin = in_msg_body~load_msg_addr();
+    set_admin(sender_address, new_admin);
+    ;;save_data(counter + nIncrease);                                               ;; call our write utility function to persist values to storage
     return ();
   }
-  ;;var (counter) = load_data();                                            ;; call our read utility function to load values from storage
-  ;; if (op == 1) {                                                          ;; handle op #1 = set admin
-  ;;   slice new_admin = in_msg_body~load_msg_addr();
-  ;;   set_admin(sender_address, new_admin);
-  ;;   ;;save_data(counter + nIncrease);                                               ;; call our write utility function to persist values to storage
-  ;;   return ();
-  ;; }
 
-  ;; if (op == 2) {  ;; handle op #2 = set botrole
-  ;;   int b_role = in_msg_body~load_uint(32);
-  ;;   slice new_bot = in_msg_body~load_msg_addr();
-  ;;   set_bot(sender_address, new_bot, b_role);
-  ;;   return ();
-  ;; }
+  if (op == 2) {  ;; handle op #2 = set botrole
+    int b_role = in_msg_body~load_uint(32);
+    slice new_bot = in_msg_body~load_msg_addr();
+    set_bot(sender_address, new_bot, b_role);
+    return ();
+  }
 
-  ;; if (op == 3) { ;; handle op #3 = buy_token
-  ;;   buy_token(sender_address);
-  ;;   return ();
-  ;; }
+  if (op == 3) { ;; handle op #3 = buy_token
+    buy_token(sender_address);
+    return ();
+  }
 
-  ;; if (op == 4) { ;; handle op #3 = buy_token
-  ;;   cs~load_msg_addr(); ;; skip dst
-  ;;   cs~load_coins(); ;; skip value
-  ;;   cs~skip_bits(1); ;; skip extracurrency collection
-  ;;   cs~load_coins(); ;; skip ihr_fee
-  ;;   int fwd_fee = cs~load_coins(); ;; we use message fwd_fee for estimation of forward_payload costs
+  if (op == 4) { ;; handle op #3 = buy_token
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = cs~load_coins(); ;; we use message fwd_fee for estimation of forward_payload costs
 
-  ;;   int query_id = in_msg_body~load_uint(64);
-  ;;   withdrawfee(sender_address);
-  ;;   return ();
-  ;; }
+    int query_id = in_msg_body~load_uint(64);
+    withdrawfee(sender_address);
+    return ();
+  }
 }
 
-;; (int) get_fee() method_id {        ;; getter declaration - returns int as result
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   return (pending_platform_fee);
-;; }
+(int) get_fee() method_id {        ;; getter declaration - returns int as result
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  return (pending_platform_fee);
+}
 
-;; (slice) get_addr() method_id {        ;; getter declaration - returns int as result
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   return (admin_address);
-;; }
+(slice) get_addr() method_id {        ;; getter declaration - returns int as result
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  return (admin_address);
+}
 
-;; (slice) get_bots() method_id {        ;; getter declaration - returns int as result
-;;   var (pending_platform_fee, admin_address, bots) = load_data();
-;;   return begin_cell().store_dict(bots).end_cell().begin_parse();
-;; }
+(slice) get_bots() method_id {        ;; getter declaration - returns int as result
+  var (pending_platform_fee, admin_address, bots) = load_data();
+  return begin_cell().store_dict(bots).end_cell().begin_parse();
+}
 
-;; () transfer_token(int query_id, slice to, int jetton_amount, int ton_value, slice wallet_address) impure {
+() transfer_token(int query_id, slice to, int jetton_amount, int ton_value, slice wallet_address) impure {
 
-;;   var jetton_transfer_message = begin_cell()
-;;     .store_uint(OP_TRANSFER, 32)
-;;     .store_uint(query_id, 64)
-;;     .store_coins(jetton_amount)
-;;     .store_slice(to)
-;;     .store_slice(to)
-;;     .store_coins(0)
-;;     .store_uint(1, 2) ;; https://github.com/ton-blockchain/token-contract/blob/2c13d3ef61ca4288293ad65bf0cfeaed83879b93/ft/jetton-wallet.fc#L60
-;;     .end_cell();
+  var jetton_transfer_message = begin_cell()
+    .store_uint(OP_TRANSFER, 32)
+    .store_uint(query_id, 64)
+    .store_coins(jetton_amount)
+    .store_slice(to)
+    .store_slice(to)
+    .store_coins(0)
+    .store_uint(1, 2) ;; https://github.com/ton-blockchain/token-contract/blob/2c13d3ef61ca4288293ad65bf0cfeaed83879b93/ft/jetton-wallet.fc#L60
+    .end_cell();
 
-;;   var msg = begin_cell()
-;;     .store_uint(0x18, 6)
-;;     .store_slice(wallet_address)
-;;     .store_coins(ton_value) ;; gas
-;;     .store_uint(4, 1 + 4 + 4 + 64 + 32)
-;;     .store_uint(0, 1) ;; state-init null
-;;     .store_uint(1, 1); ;; message body as REF
+  var msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(wallet_address)
+    .store_coins(ton_value) ;; gas
+    .store_uint(4, 1 + 4 + 4 + 64 + 32)
+    .store_uint(0, 1) ;; state-init null
+    .store_uint(1, 1); ;; message body as REF
 
-;;   msg = msg.store_ref(jetton_transfer_message);
+  msg = msg.store_ref(jetton_transfer_message);
 
-;;   send_raw_message(msg.end_cell(), 2 + 1); ;; revert on errors
-;; }
+  send_raw_message(msg.end_cell(), 2 + 1); ;; revert on errors
+}
