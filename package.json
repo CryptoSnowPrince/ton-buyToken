@@ -45,6 +45,10 @@
     "compile": "npx func-js ./contracts/counter.fc --boc ./contracts/counter.cell",
     "deploy": "ts-node scripts/deploy.ts",
     "getter": "ts-node scripts/getter.ts",
-    "sendmsg": "ts-node scripts/sendMsg.ts"
+    "sendmsg": "ts-node scripts/sendMsg.ts",
+    "mcompile": "npx func-js ./contracts/multisig-code.fc --boc ./contracts/multisig-code.cell",
+    "mdeploy": "ts-node scripts/deploym.ts",
+    "mgetter": "ts-node scripts/getterm.ts",
+    "msendmsg": "ts-node scripts/sendMsgm.ts"
   }
 }
